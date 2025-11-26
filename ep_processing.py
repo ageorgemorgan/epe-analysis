@@ -1,10 +1,12 @@
 import xarray as xr
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import cftime
 
-from loading_helpers import join_paths, join_paths_areacell
+from loading_helpers import (
+    join_paths,
+    join_paths_areacell,
+    BASE_PATH,
+    FILE_PATH,
+    AREACELL_PATH,
+)
 
 TROPICAL_HALFWIDTH = 23.4 # upper latitude in degrees by which we define the tropics. Default is tropic of Cancer
 MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR = 86400. 
@@ -22,13 +24,17 @@ def get_ds(
            runid,
            experiment_name,
            year_range,
+           base_path = BASE_PATH,
+           file_path = FILE_PATH,
           ):
     return xr.open_mfdataset(
                             join_paths(
                                 var_name, 
                                 year_range, 
                                 runid = runid, 
-                                experiment_name = experiment_name
+                                experiment_name = experiment_name,
+                                base_path = base_path,
+                                file_path = file_path,
                             ),
                             decode_times = xr.coders.CFDatetimeCoder(use_cftime=True),
                             data_vars = "all", 
@@ -43,6 +49,8 @@ def get_ep_info(
            runid,
            experiment_name,
            year_range,
+           base_path = BASE_PATH,
+           file_path = FILE_PATH,
           ):
     """Returns all extreme precipitation DAs we need from a given experiment in a given year_range"""
     conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
@@ -55,6 +63,8 @@ def get_ep_info(
                     runid, 
                     experiment_name,
                     year_range,
+                    base_path = base_path,
+                    file_path = file_path,
             ),
             var_name,
     ) for var_name in ["pr", "prc"] ]
@@ -67,12 +77,16 @@ def get_ep_info(
 def get_ds_areacell(
                     runid, 
                     experiment_name,
+                    base_path = BASE_PATH,
+                    areacell_path = AREACELL_PATH,
                    ):  
     """Get a ds of areacells for a given experiment"""
     return xr.open_dataset(
         join_paths_areacell(
             runid, 
-            experiment_name
+            experiment_name,
+            base_path = base_path,
+            areacell_path = areacell_path,
         )
     )
 
@@ -111,8 +125,11 @@ def get_annual_mean_time_series(
                                 var_name, 
                                 runid, 
                                 experiment_name,
-                                year_range
-                               ):
+                                year_range,
+                                base_path = BASE_PATH,
+                                file_path = FILE_PATH,
+                                areacell_path = AREACELL_PATH,
+):
     """Returns a time series of the annually averaged, 
     globally area-averaged (scalar) var_name in question"""
 
@@ -121,9 +138,11 @@ def get_annual_mean_time_series(
            runid,
            experiment_name,
            year_range,
-          )
+           base_path = base_path,
+           file_path = file_path,
+    )
     
-    ds_areacell = get_ds_areacell(runid, experiment_name)
+    ds_areacell = get_ds_areacell(runid, experiment_name, base_path = base_path, areacell_path = areacell_path)
     global_area = ds_areacell.areacella.sum(dim=['lon', 'lat'])         
     
     spatial_mean = (ds_areacell.areacella * ds[var_name]).sum(dim=['lon', 'lat']) / global_area # Properly area weighted mean of rate of flux
