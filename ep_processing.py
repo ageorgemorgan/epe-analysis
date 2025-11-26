@@ -109,16 +109,19 @@ def get_tropical_ep_areamean_from_experiment(
                  runid, 
                  experiment_name,
                  year_range,
+                 base_path = BASE_PATH,
+                 file_path = FILE_PATH,
+                 areacell_path = AREACELL_PATH,
                  tropical_halfwidth = TROPICAL_HALFWIDTH,
                 ):
     """Get the required means (total, convective, resolved) from a given run"""
-    ds_areacell = get_ds_areacell(runid, experiment_name)
+    ds_areacell = get_ds_areacell(runid, experiment_name, base_path = base_path, areacell_path = areacell_path)
     return [
         get_tropical_areamean(
             da, 
             ds_areacell,
             tropical_halfwidth = tropical_halfwidth,
-        ) for da in get_ep_info(runid, experiment_name, year_range)
+        ) for da in get_ep_info(runid, experiment_name, year_range, base_path = base_path, file_path =file_path)
 ]
 
 def get_annual_mean_time_series(
