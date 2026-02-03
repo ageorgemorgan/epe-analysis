@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from loading_helpers import (
@@ -9,7 +10,7 @@ from loading_helpers import (
 )
 
 TROPICAL_HALFWIDTH = 23.4 # upper latitude in degrees by which we define the tropics. Default is tropic of Cancer
-MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR = 86400. 
+MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR = 86400.
 
 def get_annual_max(ds, var_name):
     """Returns a ds whose time-slices give maps of a variable's max over each year"""
@@ -199,3 +200,23 @@ def get_annual_mean_time_series(
     
     spatial_mean = (ds_areacell.areacella * ds[var_name]).sum(dim=['lon', 'lat']) / global_area # Properly area weighted mean of rate of flux
     return spatial_mean.groupby('time.year').mean(dim='time')
+
+def get_max_delta(da, my_gridcell, grid_delta = 3.,):
+    """
+    Returns the maximum change in a data array "da" between
+    my_gridcell and its neighbours.
+    """
+    my_lat, my_lon = my_gridcell["lat"], my_gridcell["lon"]
+    my_cell_value = da.sel(lat = my_lat, lon = my_lon, method = "nearest").values
+
+    shifts = [(1,0), (-1,0), (0,1), (0,-1)]
+    nbhrs_values = [
+        da.sel(
+            lat = my_lat + grid_delta * shift[0],
+            lon = my_lon + grid_delta * shift[1],
+            method = "nearest",
+        ).values
+        for shift in shifts
+    ]
+
+    return max(np.abs(np.array(nbhrs_values) - my_cell_value))
