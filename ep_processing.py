@@ -11,6 +11,7 @@ from loading_helpers import (
 
 TROPICAL_HALFWIDTH = 23.4 # upper latitude in degrees by which we define the tropics. Default is tropic of Cancer
 MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR = 86400.
+GRID_DELTA = 3.
 
 def get_annual_max(ds, var_name):
     """Returns a ds whose time-slices give maps of a variable's max over each year"""
@@ -201,12 +202,15 @@ def get_annual_mean_time_series(
     spatial_mean = (ds_areacell.areacella * ds[var_name]).sum(dim=['lon', 'lat']) / global_area # Properly area weighted mean of rate of flux
     return spatial_mean.groupby('time.year').mean(dim='time')
 
-def get_max_delta(da, my_gridcell, grid_delta = 3.,):
+def unpack_gridcell(gridcell):
+    return gridcell["lat"], gridcell["lon"]
+
+def get_max_delta(da, gridcell, grid_delta = GRID_DELTA):
     """
     Returns the maximum change in a data array "da" between
-    my_gridcell and its neighbours.
+    gridcell and its neighbours.
     """
-    my_lat, my_lon = my_gridcell["lat"], my_gridcell["lon"]
+    my_lat, my_lon = unpack_gridcell(gridcell)
     my_cell_value = da.sel(lat = my_lat, lon = my_lon, method = "nearest").values
 
     shifts = [(1,0), (-1,0), (0,1), (0,-1)]
@@ -220,3 +224,84 @@ def get_max_delta(da, my_gridcell, grid_delta = 3.,):
     ]
 
     return max(np.abs(np.array(nbhrs_values) - my_cell_value))
+
+def get_day_of_epe(
+           runid,
+           experiment_name,
+           year,
+           gridcell,
+           base_path = BASE_PATH,
+           file_path = FILE_PATH,
+):
+    """
+    Return the date of an EPE for a particular gridcell and year
+    in a particular experiment
+    """
+
+    # Get precipitation ds
+    ds_pr_daily = get_ds(
+        "pr",
+        runid,
+        experiment_name,
+        range(year, year + 1), # technical reason for range instead of just "year"
+        base_path=base_path,
+        file_path=file_path,
+    )
+
+    my_lat, my_lon = unpack_gridcell(gridcell)
+
+    return ds_pr_daily.pr.sel(
+        lat = my_lat,
+        lon = my_lon,
+        method = "nearest"
+    ).idxmax(dim="time").values.item()
+
+def get_local_mean_epe_delta_ps(
+           runid,
+           experiment_name,
+           year_range,
+           gridcell,
+           pr_file_path,
+           ps_file_path,
+           base_path = BASE_PATH,
+           grid_delta = GRID_DELTA,
+):
+    """
+    Print the mean delta_ps on extreme precipitation days over year_range
+    within a particular cell "my_gridcell".
+    """
+
+    # Get surface pressure ds
+    ds_ps_daily = get_ds(
+        "ps",
+        runid,
+        experiment_name,
+        year_range,
+        base_path = base_path,
+        file_path = ps_file_path,
+    )
+
+    deltas = []
+
+    for year in year_range:
+        day_of_epe = get_day_of_epe(
+           runid,
+           experiment_name,
+           year,
+           gridcell,
+           base_path = base_path,
+           file_path = pr_file_path,
+        )
+
+        deltas.append(
+            get_max_delta(
+                ds_ps_daily.sel(
+                    time = day_of_epe,
+                    method = "ffill",
+                )["ps"],
+                gridcell,
+                grid_delta = grid_delta,
+            )
+        )
+
+    return np.array(deltas).mean()
