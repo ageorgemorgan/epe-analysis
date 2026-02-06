@@ -305,3 +305,63 @@ def get_local_mean_epe_delta_ps(
         )
 
     return np.array(deltas).mean()
+
+def get_abs_horiz_gradient(da, r_earth=6.37e3, r_earth_units="km"):
+    """
+    Returns a DataArray whose entries are (approx.) the magnitude of the
+    spatial gradient of a da in units of
+
+    da.units per r_earth_units.
+
+    da must have lat, lon as its spatial coords., and it must
+    also depend on time.
+
+    The finite difference approx. uses a numpy utility function.
+    Spherical coordinate corrections to the gradient are accounted for!
+    """
+
+    lat_band = np.deg2rad(da.lat.to_numpy())
+    lon_band = np.deg2rad(da.lon.to_numpy())
+
+    da_grad_as_nparr = np.gradient(
+        da.to_numpy(),
+        lat_band, # coord arrays must be included AND ordered correctly argh! yucky
+        lon_band,
+        axis = [1, 2], 
+    )
+
+    # For some reason I cannot fathom 
+    # np.gradient() outputs a tuple of arrays
+    # instead of an array. So I postprocess it
+    # into a sane output here.
+    da_grad_as_nparr = np.array(da_grad_as_nparr)
+
+    # Manually correct the longitudinal derivatives bcz
+    # np.gradient() assumed a Cartesian grid
+    # (see Holton's "An Intro. to Dynamic Meteorology", appendix C). 
+    for k in range(0, len(lat_band)):
+        da_grad_as_nparr[1][:][k][:] /=  np.cos(lat_band[k]) 
+
+    # Divide by Earth's radius 
+    da_grad_as_nparr /= r_earth
+
+    # Take the magnitude
+    abs_da_grad_as_nparr = np.sqrt(da_grad_as_nparr[0,...]**2 + da_grad_as_nparr[1,...]**2)
+
+    # Finally, return the result as a DataArray
+    return xr.DataArray(
+        data = abs_da_grad_as_nparr,
+        dims = ["time", "lat", "lon"],
+        coords = dict(
+            lon = da.lon.to_numpy(),
+            lat = da.lat.to_numpy(),
+            time = da.time.to_numpy(),
+        ),
+        attrs = dict(
+            description = da.long_name + " Horizontal Gradient",
+            units = da.units + "/" + r_earth_units,
+        ),
+    )
+
+def select_fixed_year(da, year):
+    return da.sel(time = da.time.dt.year == year)
