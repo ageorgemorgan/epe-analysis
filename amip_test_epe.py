@@ -4,9 +4,12 @@ partitioning
 
 author: AGM
 """
+import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+import sys
 
 from ep_processing import *
+from utils.visualization import draw_global_map, process_for_map
 
 my_experiment_name = "amip"
 my_runid = "agm-amip-test"
@@ -25,20 +28,50 @@ da_ep_total, da_ep_convective, da_ep_resolved = get_ep_info(
     base_path = my_base_path,
     file_path = my_file_path,
 )
-da_ep_resolved_max = da_ep_resolved.max().values
+da_ep_total_max = da_ep_total.max().values
 
-fig, ax = plt.subplots()
-CS = da_ep_resolved.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr resolved (mm/d)"})
-plt.title("Resolved")
-plt.show()
+# fig, ax = plt.subplots()
+# CS = da_ep_resolved.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr resolved (mm/d)"})
+# plt.title("Resolved")
+# plt.show()
+#
+# da_ep_convective.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "prc (mm/d)"})
+# plt.title("Convective")
+# plt.show()
+#
+# da_ep_total.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr (mm/d)"})
+# plt.title("Total")
+# plt.show()
 
-da_ep_convective.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "prc (mm/d)"})
-plt.title("Convective")
-plt.show()
+da_list = [da_ep_resolved, da_ep_convective, da_ep_total]
+label_list = ["Resolved", "Convective", "Total"]
 
-da_ep_total.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr (mm/d)"})
-plt.title("Total")
-plt.show()
+for da, label in zip(da_list, label_list):
+
+    field_vals, lon_plt, lat_plt = process_for_map(da)
+    draw_global_map(
+        lon_plt,
+        lat_plt,
+        field_vals,
+        title = label,
+        filled = True,
+        show_fig = False,
+        save_fig = True,
+        levels = 16,
+        cmap = "Blues",
+        cbar_params = [0.95, 0.2, 0.05, 0.6],
+        vmin = 0,
+        vmax = da_ep_total_max,
+        draw_labels = False,
+        label_contours = False,
+        remove_cbar = True if label != "Total" else False,
+        fig = None,
+        projection = ccrs.PlateCarree(central_longitude = 180),
+        outfilename = "amip_baseline_experiment1" + label + ".png",
+    )
+
+# Comment the line out below to compare our results against RTD
+sys.exit()
 
 mean_annual_pr_time_series = 86400 * get_annual_mean_time_series(
     "pr",

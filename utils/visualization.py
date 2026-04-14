@@ -1,7 +1,73 @@
 import cartopy.crs as ccrs
 from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
+from cartopy.util import add_cyclic_point
 import numpy as np
 import matplotlib.pyplot as plt
+
+def fill_missing_lon(field_vals, lon):
+    """
+    Periodically fills in field_vals if there is a missing lon
+
+    Useful for making maps without annoying white lines!
+
+    Thanks to DuckDuckGo for their Search Assist, and to the discussion here:
+    https://stackoverflow.com/questions/56348136/white-line-in-contour-plot-in-cartopy-on-center-longitude#56348755
+
+    Parameters
+    ----------
+    field_vals: np.ndarray:
+        "Incomplete" field values
+
+    lon: np.ndarray
+        "Incomplete" longitudes
+
+    Returns
+    -------
+    2-Tuple of np.ndarrays
+    """
+    return add_cyclic_point(field_vals, coord=lon)
+
+def fill_missing_lat(field_vals, lat):
+    """
+    Periodically fills in field_vals if there is a missing lon
+
+    Useful for making maps without annoying white lines!
+
+    Parameters
+    ----------
+    field_vals: np.ndarray:
+        "Incomplete" field values
+
+    lat: np.ndarray
+        "Incomplete" latitudes
+
+    Returns
+    -------
+    2-Tuple of np.ndarrays
+    """
+    return add_cyclic_point(field_vals, coord=lat, axis=0)
+
+def process_for_map(da):
+    """
+    Gets a DataArray ready for drawing a map.
+
+    Periodically fills in a DataArray's field values if there is a missing lat or missing lon
+    Parameters
+    ----------
+    da: xr.DataArray
+        Some DataArray
+
+    Returns
+    -------
+    3-Tuple of np.ndarrays: in order, field_vals, lon, lat
+    """
+    lon = da["lon"]
+    lat = da["lat"]
+    field_vals = da.to_numpy()
+
+    field_vals, lon = fill_missing_lon(field_vals, lon)
+    #field_vals, lat = fill_missing_lat(field_vals, lat)
+    return field_vals, lon, lat
 
 def draw_global_map(
     lon,
@@ -14,7 +80,7 @@ def draw_global_map(
     levels = 8,
     cmap = "plasma",
     cbar_params = [0.95, 0.2, 0.05, 0.6],
-    bbox = None,
+    bbox = [0., 360., -87.86, 87.86],
     vmin = None,
     vmax = None,
     draw_labels = False,
@@ -115,7 +181,7 @@ def draw_global_map(
 
     # Zoom in if required
     if bbox is not None:
-        ax.set_extent(bbox)
+        ax.set_extent(bbox, crs=ccrs.PlateCarree())
 
     # Save and/or display the figure
     if save_fig:
