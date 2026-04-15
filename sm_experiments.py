@@ -130,12 +130,12 @@ plt.scatter(5e8,
             s = 180,
            )
 
-plt.ylabel("Mean Precip., Extremes Only (mm/day)", fontsize = 14)
-plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 14)
+plt.ylabel("Mean Precip., EPEs Only (mm/day)", fontsize = 16)
+plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
 plt.grid("on")
-plt.xticks(fontsize = 12, rotation = 0)
-plt.yticks(fontsize = 12, rotation = 0)
-# plt.legend(fontsize = 12) # commented out only for formatting purposes in the report
+plt.xticks(fontsize = 16, rotation = 0)
+plt.yticks(fontsize = 16, rotation = 0)
+# plt.legend(fontsize = 16) # commented out only for formatting purposes in the report
 plt.xlim(min(alpha), max(alpha))
 plt.tight_layout()
 
@@ -187,12 +187,12 @@ plt.scatter(5e8,
             s = 180,
            )
 
-plt.ylabel("Mean Precipitation Rate (mm/day)", fontsize = 14)
-plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 14)
+plt.ylabel("Mean Precipitation (mm/day)", fontsize = 16)
+plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
 plt.grid("on")
-plt.xticks(fontsize = 12, rotation = 0)
-plt.yticks(fontsize = 12, rotation = 0)
-plt.legend(fontsize = 12, loc = (0.2, 0.6))
+plt.xticks(fontsize = 16, rotation = 0)
+plt.yticks(fontsize = 16, rotation = 0)
+plt.legend(fontsize = 16, loc = (0.2, 0.6))
 plt.xlim(min(alpha), max(alpha))
 plt.tight_layout()
 
@@ -289,10 +289,10 @@ plt.scatter(21600,
            )
 
 plt.grid("on")
-plt.xticks(fontsize = 12, rotation = 0)
-plt.yticks(fontsize = 12, rotation = 0)
-plt.ylabel("Mean Precip., Extremes Only (mm/day)", fontsize = 14)
-plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 14)
+plt.xticks(fontsize = 16, rotation = 0)
+plt.yticks(fontsize = 16, rotation = 0)
+plt.ylabel("Mean Precip., EPEs Only (mm/day)", fontsize = 16)
+plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
 # plt.legend(fontsize = 12, loc = (0.05, 0.25))
 plt.xlim(min(taud), max(taud))
 plt.tight_layout()
@@ -345,9 +345,9 @@ plt.scatter(21600,
            )
 
 plt.grid("on")
-plt.xticks(fontsize = 12, rotation = 0)
-plt.yticks(fontsize = 12, rotation = 0)
-plt.ylabel("Mean Precipitation Rate (mm/day)", fontsize = 14)
+plt.xticks(fontsize = 16, rotation = 0)
+plt.yticks(fontsize = 16, rotation = 0)
+plt.ylabel("Mean Precipitation (mm/day)", fontsize = 14)
 plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 14)
 # plt.legend(fontsize = 12, loc = "best")
 plt.xlim(min(taud), max(taud))
