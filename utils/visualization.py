@@ -81,6 +81,9 @@ def draw_global_map(
     cmap = "plasma",
     cbar_params = [0.95, 0.2, 0.05, 0.6],
     bbox = [0., 360., -87.86, 87.86],
+    ytickdelta = 30,
+    xtickdelta = 60,
+    figsize = (8, 6),
     vmin = None,
     vmax = None,
     draw_labels = False,
@@ -101,7 +104,7 @@ def draw_global_map(
         fig, ax = plt.subplots(
             1,
             1,
-            figsize=(8, 6),
+            figsize=figsize,
             subplot_kw={"projection": projection}
         )
 
@@ -120,8 +123,8 @@ def draw_global_map(
 
     # Tick labels thanks to this nice post:
     # https://stackoverflow.com/questions/61577057/weird-setting-of-latitude-labels-in-cartopy-miller-projection
-    ax.set_xticks(np.arange(-180, 180, 60), crs = ccrs.PlateCarree())
-    ax.set_yticks(np.arange(-90, 90.5, 30), crs = ccrs.PlateCarree())
+    ax.set_xticks(np.arange(-180, 180, xtickdelta), crs = ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-90, 90.5, ytickdelta), crs = ccrs.PlateCarree())
     lat_formatter = LatitudeFormatter()
     lon_formatter = LongitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)

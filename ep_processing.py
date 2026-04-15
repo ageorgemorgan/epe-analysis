@@ -13,8 +13,13 @@ TROPICAL_HALFWIDTH = 23.4 # upper latitude in degrees by which we define the tro
 MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR = 86400.
 GRID_DELTA = 3.
 
-def get_annual_max(ds, var_name):
-    """Returns a ds whose time-slices give maps of a variable's max over each year"""
+def get_annual_max(ds, var_name = None):
+    """Returns a da or ds whose time-slices give maps of a variable's max over each year"""
+
+    # if the var_name has already been peeled off, just catch this
+    if var_name is None:
+        return ds.groupby("time.year").max(dim="time")
+
     return ds[var_name].groupby("time.year").max(dim="time")
 
 def get_mean_annual_max(ds, var_name):
@@ -84,7 +89,7 @@ def get_mean_info(
         file_path=FILE_PATH,
 ):
 
-    """Returns all extreme precipitation DAs we need from a given experiment in a given year_range"""
+    """Returns all mean precipitation DAs we need from a given experiment in a given year_range"""
     conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
 
     "First assemble those values we can just read from the data (total and convective)"
@@ -122,20 +127,89 @@ def get_ds_areacell(
         )
     )
 
+def get_tropical_slice(tropical_halfwidth = TROPICAL_HALFWIDTH):
+    """
+    Returns a tropical slice of latitudes
+    """
+    return slice(-tropical_halfwidth, tropical_halfwidth)
+
+def select_tropical_slice(da, tropical_halfwidth = TROPICAL_HALFWIDTH):
+    """
+    Returns a slice of a given array consisting only of tropical latitudes
+    """
+    tropical_slice = get_tropical_slice(tropical_halfwidth = tropical_halfwidth)
+
+    return da.sel(lat = tropical_slice)
+
 def get_tropical_areamean(da, ds_areacell, tropical_halfwidth = TROPICAL_HALFWIDTH): 
     """
     Compute the spatial mean over the tropics of a given DA
-    
     """
-    tropical_slice = slice(-tropical_halfwidth, tropical_halfwidth)
-
-    # Restrict DA to the tropics
-    da_tropical = da.sel(lat = tropical_slice)
+    da_tropical = select_tropical_slice(da, tropical_halfwidth = tropical_halfwidth)
 
     # Figure out total area covered by the tropics
-    tropical_area = ds_areacell.areacella.sel(lat = tropical_slice).sum(dim=['lon', 'lat'])    
+    tropical_area = ds_areacell.areacella.sel(
+        lat = get_tropical_slice(tropical_halfwidth = tropical_halfwidth)
+    ).sum(
+        dim=['lon', 'lat']
+    )
     
     return ((ds_areacell.areacella * da_tropical).sum(dim=['lon', 'lat']) / tropical_area).values
+
+def get_convective_ep_fraction_in_tropics(
+        runid,
+        experiment_name,
+        year_range,
+        base_path,
+        file_path,
+        areacell_path,
+        tropical_halfwidth = TROPICAL_HALFWIDTH,
+):
+    """
+    Get the fraction of convective precipitation in the tropics
+    """
+    conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
+
+    "First assemble those values we can just read from the data (total and convective)"
+    base_das = [
+        conv *
+        select_tropical_slice(
+            get_ds(
+                var_name,
+                runid,
+                experiment_name,
+                year_range,
+                base_path = base_path,
+                file_path = file_path,
+            )[var_name],
+            tropical_halfwidth = tropical_halfwidth,
+        )
+        for var_name in ["pr", "prc"]
+    ]
+
+    climatology_das = [
+        da.mean(dim = "time") for da in base_das
+    ]
+
+    extreme_das = [
+        get_annual_max(da) for da in base_das
+    ]
+
+    anomaly_das = [
+        extreme - climatology for extreme, climatology in zip(extreme_das, climatology_das)
+    ]
+
+    da_fraction = (anomaly_das[-1] / anomaly_das[0]).mean(dim = "year")
+
+    # Now get the spatial mean
+    ds_areacell = get_ds_areacell(runid, experiment_name, base_path = base_path, areacell_path = areacell_path)
+
+    da_fraction_spatial_mean = get_tropical_areamean(
+        da_fraction,
+        ds_areacell,
+        tropical_halfwidth = tropical_halfwidth
+    )
+    return da_fraction, da_fraction_spatial_mean
 
 def get_tropical_ep_areamean_from_experiment(
                  runid, 

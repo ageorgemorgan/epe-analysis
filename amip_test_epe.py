@@ -30,46 +30,85 @@ da_ep_total, da_ep_convective, da_ep_resolved = get_ep_info(
 )
 da_ep_total_max = da_ep_total.max().values
 
-# fig, ax = plt.subplots()
-# CS = da_ep_resolved.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr resolved (mm/d)"})
-# plt.title("Resolved")
-# plt.show()
+# da_list = [da_ep_resolved, da_ep_convective, da_ep_total]
+# label_list = ["Resolved", "Convective", "Total"]
 #
-# da_ep_convective.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "prc (mm/d)"})
-# plt.title("Convective")
-# plt.show()
+# for da, label in zip(da_list, label_list):
 #
-# da_ep_total.plot(vmin=0, vmax=da_ep_resolved_max, cbar_kwargs={"label": "pr (mm/d)"})
-# plt.title("Total")
-# plt.show()
+#     field_vals, lon_plt, lat_plt = process_for_map(da)
+#     draw_global_map(
+#         lon_plt,
+#         lat_plt,
+#         field_vals,
+#         title = label,
+#         filled = True,
+#         show_fig = False,
+#         save_fig = True,
+#         levels = 16,
+#         cmap = "Blues",
+#         cbar_params = [0.95, 0.24, 0.05, 0.505], # position, upper offset, width, cbar length
+#         vmin = 0,
+#         vmax = da_ep_total_max,
+#         draw_labels = False,
+#         label_contours = False,
+#         remove_cbar = True if label != "Total" else False,
+#         fig = None,
+#         projection = ccrs.PlateCarree(central_longitude = 180),
+#         outfilename = "amip_baseline_experiment1" + label + ".png",
+#     )
 
-da_list = [da_ep_resolved, da_ep_convective, da_ep_total]
-label_list = ["Resolved", "Convective", "Total"]
+# Determining Anomalies
+tropical_halfwidth = 23.4
 
-for da, label in zip(da_list, label_list):
+da_conv_fraction, da_conv_fraction_spatial_mean = get_convective_ep_fraction_in_tropics(
+        my_runid,
+        my_experiment_name,
+        year_range,
+        my_base_path,
+        my_file_path,
+        my_areacell_path,
+        tropical_halfwidth = tropical_halfwidth,
+)
 
-    field_vals, lon_plt, lat_plt = process_for_map(da)
-    draw_global_map(
+field_vals, lon_plt, lat_plt = process_for_map(da_conv_fraction)
+draw_global_map(
         lon_plt,
         lat_plt,
         field_vals,
-        title = label,
+        title = None,
         filled = True,
-        show_fig = False,
-        save_fig = True,
+        show_fig = True,
+        save_fig = False,
         levels = 16,
-        cmap = "Blues",
-        cbar_params = [0.95, 0.2, 0.05, 0.6],
-        vmin = 0,
-        vmax = da_ep_total_max,
+        bbox = [0, 360, -tropical_halfwidth + 2, tropical_halfwidth - 2],
+        cmap = "greys",
+        cbar_params = [0.92, 0.35, 0.025, 0.22], # position, upper offset, width, cbar length
+        xtickdelta = 60,
+        ytickdelta = 10,
+        figsize = (10, 3),
+        #vmin = 0,
+        #vmax = 1.0,
         draw_labels = False,
         label_contours = False,
-        remove_cbar = True if label != "Total" else False,
+        remove_cbar = False,
         fig = None,
         projection = ccrs.PlateCarree(central_longitude = 180),
-        outfilename = "amip_baseline_experiment1" + label + ".png",
-    )
+        outfilename = "amip_baseline_convective_fraction_experiment1" + ".png",
+)
 
+print(f"Area-weighted spatial mean of convective fraction = {da_convective_fraction_spatial_mean}")
+
+# print(
+#     f"The maximum fraction of convective precipitation over all grid cells is {
+#     100 * convective_fraction_max
+#     } %."
+# )
+#
+# print(
+#     f"The global mean fraction of convective precipitation is {
+#     100 * convective_fraction_mean
+#     } %."
+# )
 # Comment the line out below to compare our results against RTD
 sys.exit()
 
