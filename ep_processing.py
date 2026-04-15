@@ -50,7 +50,29 @@ def get_ds(
 # TODO: adapt get_ep_info so that it works from a ds instead. 
 # Then wrap this to get_ep_info where it takes in a runid and experiment name. 
 # The purpose of this is to try and do as little experiment loading as possible. 
-# In general worry more about load-time efficiency in this code. 
+# In general worry more about load-time efficiency in this code.
+
+def get_day_of_extreme(da, year):
+    """
+    Return a map whose values are the dates where "da" achieved its maximum
+    in a given year.
+    """
+    return select_fixed_year(da, year).idxmax(dim = "time")
+
+def to_yearly_dataarray(da, da_processed, year_range):
+    """
+    Helper function for turning a list of DataArrays (where the list index is to be understood
+    as a time index) into a new DataArray with a time dimension
+    """
+    return xr.DataArray(
+            data = da_processed,
+            dims = ["time", "lat", "lon"],
+            coords = dict(
+                lon = da.lon.to_numpy(),
+                lat = da.lat.to_numpy(),
+                time = [year for year in year_range],
+            ),
+    )
 
 def get_ep_info(
            runid,
@@ -62,24 +84,56 @@ def get_ep_info(
     """Returns all extreme precipitation DAs we need from a given experiment in a given year_range"""
     conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
 
-    "First assemble those values we can just read from the data (total and convective)"
-    base_das = [
-        conv * get_mean_annual_max(
-            get_ds(
-                    var_name,
-                    runid, 
-                    experiment_name,
-                    year_range,
-                    base_path = base_path,
-                    file_path = file_path,
-            ),
+    #First assemble those values we can just read from the data (total and convective)
+    da_pr, da_prc = [
+        conv * get_ds(
             var_name,
-    ) for var_name in ["pr", "prc"] ]
+            runid,
+            experiment_name,
+            year_range,
+            base_path = base_path,
+            file_path = file_path,
+        )[var_name]
+     for var_name in ["pr", "prc"]
+    ]
 
-    "Conclude by appending the resolved precip"
-    base_das.append(base_das[0] - base_das[1])
-    
-    return base_das
+    # Now we pull out the extremes
+    da_epr_as_temporal_list = []
+    da_eprc_as_temporal_list = []
+
+    for year in year_range:
+        day_of_epe = get_day_of_extreme(da_pr, year)
+
+        da_epr_current_year = da_pr.sel(time=day_of_epe)
+        da_eprc_current_year = da_prc.sel(time=day_of_epe)
+
+        da_epr_as_temporal_list.append(da_epr_current_year)
+        da_eprc_as_temporal_list.append(da_eprc_current_year)
+
+    da_epr = to_yearly_dataarray(da_pr, da_epr_as_temporal_list, year_range)
+    da_eprc = to_yearly_dataarray(da_prc, da_eprc_as_temporal_list, year_range)
+
+    # Conclude by getting the resolved precip
+    da_eprr = da_epr - da_eprc
+
+    return [da_epr, da_eprc, da_eprr]
+
+def get_mean_ep_info(
+           runid,
+           experiment_name,
+           year_range,
+           base_path = BASE_PATH,
+           file_path = FILE_PATH,
+):
+    ep_info = get_ep_info(
+           runid,
+           experiment_name,
+           year_range,
+           base_path = base_path,
+           file_path = file_path,
+    )
+
+    return [da.mean(dim= "time") for da in ep_info]
 
 def get_mean_info(
         runid,
@@ -156,61 +210,6 @@ def get_tropical_areamean(da, ds_areacell, tropical_halfwidth = TROPICAL_HALFWID
     
     return ((ds_areacell.areacella * da_tropical).sum(dim=['lon', 'lat']) / tropical_area).values
 
-def get_convective_ep_fraction_in_tropics(
-        runid,
-        experiment_name,
-        year_range,
-        base_path,
-        file_path,
-        areacell_path,
-        tropical_halfwidth = TROPICAL_HALFWIDTH,
-):
-    """
-    Get the fraction of convective precipitation in the tropics
-    """
-    conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
-
-    "First assemble those values we can just read from the data (total and convective)"
-    base_das = [
-        conv *
-        select_tropical_slice(
-            get_ds(
-                var_name,
-                runid,
-                experiment_name,
-                year_range,
-                base_path = base_path,
-                file_path = file_path,
-            )[var_name],
-            tropical_halfwidth = tropical_halfwidth,
-        )
-        for var_name in ["pr", "prc"]
-    ]
-
-    climatology_das = [
-        da.mean(dim = "time") for da in base_das
-    ]
-
-    extreme_das = [
-        get_annual_max(da) for da in base_das
-    ]
-
-    anomaly_das = [
-        extreme - climatology for extreme, climatology in zip(extreme_das, climatology_das)
-    ]
-
-    da_fraction = (anomaly_das[-1] / anomaly_das[0]).mean(dim = "year")
-
-    # Now get the spatial mean
-    ds_areacell = get_ds_areacell(runid, experiment_name, base_path = base_path, areacell_path = areacell_path)
-
-    da_fraction_spatial_mean = get_tropical_areamean(
-        da_fraction,
-        ds_areacell,
-        tropical_halfwidth = tropical_halfwidth
-    )
-    return da_fraction, da_fraction_spatial_mean
-
 def get_tropical_ep_areamean_from_experiment(
                  runid, 
                  experiment_name,
@@ -227,7 +226,7 @@ def get_tropical_ep_areamean_from_experiment(
             da, 
             ds_areacell,
             tropical_halfwidth = tropical_halfwidth,
-        ) for da in get_ep_info(runid, experiment_name, year_range, base_path = base_path, file_path =file_path)
+        ) for da in get_mean_ep_info(runid, experiment_name, year_range, base_path = base_path, file_path =file_path)
 ]
 
 def get_tropical_avgp_areamean_from_experiment(

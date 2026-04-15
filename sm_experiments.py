@@ -18,7 +18,10 @@ my_base_path = "~/Documents/research/experiment-outputs/{experiment_name}/{runid
 my_file_path = "{var_name}_day_CanESM5-1_{experiment_name}_r1i1p1f1_gn_{year}0101-{year}1231.nc"
 my_areacell_path = "areacella_fx_CanESM5-1_amip_r1i1p1f1_gn.nc"
 
+# First we load the baseline AMIP simulation (results of experiment 1)
 baseline_runid = "agm-amip-test"
+
+# Means over all EPEs
 pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_ep_areamean_from_experiment(
     baseline_runid,
     my_experiment_name,
@@ -28,6 +31,7 @@ pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_e
     areacell_path = my_areacell_path,
 )
 
+# Means over all days
 avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_tropical_avgp_areamean_from_experiment(
     baseline_runid,
     my_experiment_name,
@@ -49,6 +53,7 @@ avgpr_total_alpha = []
 avgpr_convective_alpha = []
 avgpr_resolved_alpha = []
 
+# Load all other experimental results
 for a_str in alpha_str:
     if a_str == "5e8":
         pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = pr_total_baseline, pr_convective_baseline, pr_resolved_baseline
@@ -80,6 +85,7 @@ for a_str in alpha_str:
     avgpr_convective_alpha.append(avgpr_convective_experiment)
     avgpr_resolved_alpha.append(avgpr_resolved_experiment)
 
+# Make plots for alpha experiments
 plt.semilogx(alpha,
              pr_total_alpha,
              color = "xkcd:emerald",
@@ -124,16 +130,16 @@ plt.scatter(5e8,
             s = 180,
            )
 
-plt.ylabel("Precipitation Rate (mm/day)", fontsize = 14)
+plt.ylabel("Mean Precip., Extremes Only (mm/day)", fontsize = 14)
 plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 14)
 plt.grid("on")
 plt.xticks(fontsize = 12, rotation = 0)
 plt.yticks(fontsize = 12, rotation = 0)
-plt.legend(fontsize = 12)
+# plt.legend(fontsize = 12) # commented out only for formatting purposes in the report
 plt.xlim(min(alpha), max(alpha))
 plt.tight_layout()
 
-plt.savefig("sm-experiments-alpha" + ".png", dpi = 600)
+plt.savefig("images/sm-experiments-alpha" + ".png", dpi = 600)
 # plt.show
 plt.clf()
 
@@ -190,7 +196,7 @@ plt.legend(fontsize = 12, loc = (0.2, 0.6))
 plt.xlim(min(alpha), max(alpha))
 plt.tight_layout()
 
-plt.savefig("sm-experiments-avg-alpha" + ".png", dpi = 600)
+plt.savefig("images/sm-experiments-avg-alpha" + ".png", dpi = 600)
 #plt.show()
 plt.clf()
 
@@ -285,13 +291,13 @@ plt.scatter(21600,
 plt.grid("on")
 plt.xticks(fontsize = 12, rotation = 0)
 plt.yticks(fontsize = 12, rotation = 0)
-plt.ylabel("Precipitation Rate (mm/day)", fontsize = 14)
+plt.ylabel("Mean Precip., Extremes Only (mm/day)", fontsize = 14)
 plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 14)
-plt.legend(fontsize = 12, loc = (0.05, 0.25))
+# plt.legend(fontsize = 12, loc = (0.05, 0.25))
 plt.xlim(min(taud), max(taud))
 plt.tight_layout()
 
-plt.savefig("sm-experiments-taud" + ".png", dpi = 600)
+plt.savefig("images/sm-experiments-taud" + ".png", dpi = 600)
 #plt.show()
 plt.clf()
 
@@ -343,9 +349,9 @@ plt.xticks(fontsize = 12, rotation = 0)
 plt.yticks(fontsize = 12, rotation = 0)
 plt.ylabel("Mean Precipitation Rate (mm/day)", fontsize = 14)
 plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 14)
-plt.legend(fontsize = 12, loc = "best")
+# plt.legend(fontsize = 12, loc = "best")
 plt.xlim(min(taud), max(taud))
 plt.tight_layout()
 
-plt.savefig("sm-experiments-avg-taud" + ".png", dpi = 600)
+plt.savefig("images/sm-experiments-avg-taud" + ".png", dpi = 600)
 #plt.show()
