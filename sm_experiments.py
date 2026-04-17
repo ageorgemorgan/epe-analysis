@@ -14,12 +14,16 @@ year_start = 2003
 year_end = 2008 + 1
 year_range = range(year_start, year_end)
 
+default_markersize = 320
+
 my_base_path = "~/Documents/research/experiment-outputs/{experiment_name}/{runid}/"
 my_file_path = "{var_name}_day_CanESM5-1_{experiment_name}_r1i1p1f1_gn_{year}0101-{year}1231.nc"
 my_areacell_path = "areacella_fx_CanESM5-1_amip_r1i1p1f1_gn.nc"
 
 # First we load the baseline AMIP simulation (results of experiment 1)
 baseline_runid = "agm-amip-test"
+
+tropical_halfwidth = 13.
 
 # Means over all EPEs
 pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_ep_areamean_from_experiment(
@@ -29,6 +33,7 @@ pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_e
     base_path = my_base_path,
     file_path = my_file_path,
     areacell_path = my_areacell_path,
+    tropical_halfwidth = 13.,
 )
 
 # Means over all days
@@ -39,6 +44,7 @@ avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_t
     base_path = my_base_path,
     file_path = my_file_path,
     areacell_path = my_areacell_path,
+    tropical_halfwidth = 13.,
 )
 
 # ****ALPHA EXPERIMENTS****
@@ -67,6 +73,7 @@ for a_str in alpha_str:
             base_path = my_base_path,
             file_path = my_file_path,
             areacell_path = my_areacell_path,
+            tropical_halfwidth=13.,
         )
         avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_tropical_avgp_areamean_from_experiment(
             sm_runid,
@@ -75,6 +82,7 @@ for a_str in alpha_str:
             base_path=my_base_path,
             file_path=my_file_path,
             areacell_path=my_areacell_path,
+            tropical_halfwidth=13.,
         )
 
     pr_total_alpha.append(pr_total_experiment)
@@ -89,24 +97,24 @@ for a_str in alpha_str:
 plt.semilogx(alpha,
              pr_total_alpha,
              color = "xkcd:emerald",
-             marker = "o",
+             marker = "s",
              linestyle = "solid",
              label= "Total",
              linewidth = 2,
             )
 plt.semilogx(alpha,
              pr_convective_alpha,
-             color = "xkcd:crimson",
-             marker = "^",
-             linestyle = "dashed",
+             color = "xkcd:cerulean",
+             marker = "o",
+             linestyle = "solid",
              label = "Convective",
              linewidth = 2,
             )
 plt.semilogx(alpha,
              pr_resolved_alpha,
-             color = "xkcd:cerulean",
-             marker = "v",
-             linestyle = "dotted",
+             color = "xkcd:crimson",
+             marker = "d",
+             linestyle = "solid",
              label = "Resolved",
              linewidth = 2,
             )
@@ -115,19 +123,19 @@ plt.scatter(5e8,
             pr_total_baseline,
             color = "xkcd:emerald",
             marker= "*",
-            s = 180,
+            s = default_markersize,
            )
 plt.scatter(5e8,
             pr_convective_baseline,
-            color = "xkcd:crimson",
+            color = "xkcd:cerulean",
             marker= "*",
-            s = 180,
+            s = default_markersize,
            )
 plt.scatter(5e8,
             pr_resolved_baseline,
-            color = "xkcd:cerulean",
+            color = "xkcd:crimson",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
            )
 
 plt.ylabel("Mean Precip., EPEs Only (mm/day)", fontsize = 16)
@@ -146,24 +154,24 @@ plt.clf()
 plt.semilogx(alpha,
              avgpr_total_alpha,
              color = "xkcd:emerald",
-             marker = "o",
+             marker = "s",
              linestyle = "solid",
              label= "Total",
              linewidth = 2,
             )
 plt.semilogx(alpha,
              avgpr_convective_alpha,
-             color = "xkcd:crimson",
-             marker = "^",
-             linestyle = "dashed",
+             color = "xkcd:cerulean",
+             marker = "o",
+             linestyle = "solid",
              label = "Convective",
              linewidth = 2,
             )
 plt.semilogx(alpha,
              avgpr_resolved_alpha,
-             color = "xkcd:cerulean",
-             marker = "v",
-             linestyle = "dotted",
+             color = "xkcd:crimson",
+             marker = "d",
+             linestyle = "solid",
              label = "Resolved",
              linewidth = 2,
             )
@@ -172,19 +180,19 @@ plt.scatter(5e8,
             avgpr_total_baseline,
             color = "xkcd:emerald",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
            )
 plt.scatter(5e8,
             avgpr_convective_baseline,
-            color = "xkcd:crimson",
+            color = "xkcd:cerulean",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
            )
 plt.scatter(5e8,
             avgpr_resolved_baseline,
-            color = "xkcd:cerulean",
+            color = "xkcd:crimson",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
            )
 
 plt.ylabel("Mean Precipitation (mm/day)", fontsize = 16)
@@ -226,6 +234,7 @@ for t_str in taud_str:
             base_path = my_base_path,
             file_path = my_file_path,
             areacell_path = my_areacell_path,
+            tropical_halfwidth=13.,
         )
 
         avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_tropical_avgp_areamean_from_experiment(
@@ -235,6 +244,7 @@ for t_str in taud_str:
             base_path=my_base_path,
             file_path=my_file_path,
             areacell_path=my_areacell_path,
+            tropical_halfwidth=13.,
         )
 
     pr_total_taud.append(pr_total_experiment)
@@ -248,24 +258,24 @@ for t_str in taud_str:
 plt.plot(taud,
          pr_total_taud,
          color = "xkcd:emerald",
-         marker = "o",
+         marker = "s",
          linestyle = "solid",
          label= "Total",
          linewidth = 2,
         )
 plt.plot(taud,
          pr_convective_taud,
-         color = "xkcd:crimson",
-         marker = "^",
-         linestyle = "dashed",
+         color = "xkcd:cerulean",
+         marker = "o",
+         linestyle = "solid",
          label = "Convective",
          linewidth = 2,
         )
 plt.plot(taud,
          pr_resolved_taud,
-         color = "xkcd:cerulean",
-         marker = "v",
-         linestyle = "dotted",
+         color = "xkcd:crimson",
+         marker = "d",
+         linestyle = "solid",
          label = "Resolved",
          linewidth = 2,
         )
@@ -274,18 +284,19 @@ plt.scatter(21600,
             pr_total_baseline,
             color = "xkcd:emerald",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
            )
 plt.scatter(21600,
             pr_convective_baseline,
-            color = "xkcd:crimson",
-            marker= "*",
-            s = 180,)
-plt.scatter(21600,
-            pr_resolved_baseline,
             color = "xkcd:cerulean",
             marker= "*",
-            s = 180,
+            s =  default_markersize,
+            )
+plt.scatter(21600,
+            pr_resolved_baseline,
+            color = "xkcd:crimson",
+            marker= "*",
+            s =  default_markersize,
            )
 
 plt.grid("on")
@@ -304,51 +315,52 @@ plt.clf()
 plt.plot(taud,
          avgpr_total_taud,
          color = "xkcd:emerald",
-         marker = "o",
+         marker = "s",
          linestyle = "solid",
          label= "Total",
          linewidth = 2,
-        )
+)
 plt.plot(taud,
          avgpr_convective_taud,
-         color = "xkcd:crimson",
-         marker = "^",
-         linestyle = "dashed",
+         color = "xkcd:cerulean",
+         marker = "o",
+         linestyle = "solid",
          label = "Convective",
          linewidth = 2,
-        )
+)
 plt.plot(taud,
          avgpr_resolved_taud,
-         color = "xkcd:cerulean",
-         marker = "v",
-         linestyle = "dotted",
+         color = "xkcd:crimson",
+         marker = "d",
+         linestyle = "solid",
          label = "Resolved",
          linewidth = 2,
-        )
+)
 
 plt.scatter(21600,
             avgpr_total_baseline,
             color = "xkcd:emerald",
             marker= "*",
-            s = 180,
-           )
+            s =  default_markersize,
+)
 plt.scatter(21600,
             avgpr_convective_baseline,
-            color = "xkcd:crimson",
-            marker= "*",
-            s = 180,)
-plt.scatter(21600,
-            avgpr_resolved_baseline,
             color = "xkcd:cerulean",
             marker= "*",
-            s = 180,
-           )
+            s =  default_markersize,
+)
+plt.scatter(21600,
+            avgpr_resolved_baseline,
+            color = "xkcd:crimson",
+            marker= "*",
+            s =  default_markersize,
+)
 
 plt.grid("on")
 plt.xticks(fontsize = 16, rotation = 0)
 plt.yticks(fontsize = 16, rotation = 0)
-plt.ylabel("Mean Precipitation (mm/day)", fontsize = 14)
-plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 14)
+plt.ylabel("Mean Precipitation (mm/day)", fontsize = 16)
+plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
 # plt.legend(fontsize = 12, loc = "best")
 plt.xlim(min(taud), max(taud))
 plt.tight_layout()
