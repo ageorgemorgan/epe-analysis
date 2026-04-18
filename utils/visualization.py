@@ -81,6 +81,8 @@ def draw_global_map(
     cmap = "plasma",
     cbar_params = [0.95, 0.2, 0.05, 0.6],
     bbox = [0., 360., -87.86, 87.86],
+    point_to_label = None,
+    point_to_label_color = "xkcd:crimson",
     ytickdelta = 30,
     xtickdelta = 60,
     figsize = (8, 6),
@@ -181,6 +183,17 @@ def draw_global_map(
     # Remove colorbar if desired
     if remove_cbar:
         cbar.remove()
+
+    # Mark a special point if needed
+    if point_to_label is not None:
+       ax.plot(
+           point_to_label[0],
+           point_to_label[1],
+           marker="*",
+           color=point_to_label_color,
+           markersize=15,
+           transform = ccrs.PlateCarree(),
+       )
 
     # Zoom in if required
     if bbox is not None:
