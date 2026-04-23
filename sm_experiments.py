@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from ep_processing import *
 
 my_experiment_name = "amip"
-year_start = 2003
+year_start = 2004
 year_end = 2008 + 1
 year_range = range(year_start, year_end)
 
@@ -23,7 +23,7 @@ my_areacell_path = "areacella_fx_CanESM5-1_amip_r1i1p1f1_gn.nc"
 # First we load the baseline AMIP simulation (results of experiment 1)
 baseline_runid = "agm-amip-test"
 
-tropical_halfwidth = 13.
+tropical_halfwidth = 13. 
 
 # Means over all EPEs
 pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_ep_areamean_from_experiment(
@@ -33,7 +33,7 @@ pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_e
     base_path = my_base_path,
     file_path = my_file_path,
     areacell_path = my_areacell_path,
-    tropical_halfwidth = 13.,
+    tropical_halfwidth = tropical_halfwidth,
 )
 
 # Means over all days
@@ -44,7 +44,7 @@ avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_t
     base_path = my_base_path,
     file_path = my_file_path,
     areacell_path = my_areacell_path,
-    tropical_halfwidth = 13.,
+    tropical_halfwidth = tropical_halfwidth ,
 )
 
 # ****ALPHA EXPERIMENTS****
@@ -73,7 +73,7 @@ for a_str in alpha_str:
             base_path = my_base_path,
             file_path = my_file_path,
             areacell_path = my_areacell_path,
-            tropical_halfwidth=13.,
+            tropical_halfwidth=tropical_halfwidth ,
         )
         avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_tropical_avgp_areamean_from_experiment(
             sm_runid,
@@ -82,7 +82,7 @@ for a_str in alpha_str:
             base_path=my_base_path,
             file_path=my_file_path,
             areacell_path=my_areacell_path,
-            tropical_halfwidth=13.,
+            tropical_halfwidth=tropical_halfwidth ,
         )
 
     pr_total_alpha.append(pr_total_experiment)
@@ -234,7 +234,7 @@ for t_str in taud_str:
             base_path = my_base_path,
             file_path = my_file_path,
             areacell_path = my_areacell_path,
-            tropical_halfwidth=13.,
+            tropical_halfwidth=tropical_halfwidth ,
         )
 
         avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_tropical_avgp_areamean_from_experiment(
@@ -244,7 +244,7 @@ for t_str in taud_str:
             base_path=my_base_path,
             file_path=my_file_path,
             areacell_path=my_areacell_path,
-            tropical_halfwidth=13.,
+            tropical_halfwidth=tropical_halfwidth ,
         )
 
     pr_total_taud.append(pr_total_experiment)
