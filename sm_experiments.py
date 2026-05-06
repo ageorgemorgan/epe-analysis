@@ -23,7 +23,7 @@ my_areacell_path = "areacella_fx_CanESM5-1_amip_r1i1p1f1_gn.nc"
 # First we load the baseline AMIP simulation (results of experiment 1)
 baseline_runid = "agm-amip-test"
 
-tropical_halfwidth = 13. 
+tropical_halfwidth = 13.
 
 # Means over all EPEs
 pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_tropical_ep_areamean_from_experiment(
