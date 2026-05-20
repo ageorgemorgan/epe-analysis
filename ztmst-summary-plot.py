@@ -1,7 +1,5 @@
-# Based on
 import matplotlib.pyplot as plt
 from mpl_toolkits import axisartist
-import numpy as np
 from ep_processing import *
 
 plt.rc('font', family='serif')
