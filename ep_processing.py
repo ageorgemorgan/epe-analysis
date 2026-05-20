@@ -67,7 +67,7 @@ def get_day_of_extreme(da, year):
 def to_yearly_dataarray(da, da_processed, year_range):
     """
     Helper function for turning a list of DataArrays (where the list index is to be understood
-    as a time index) into a new DataArray with a time dimension
+    as a year index) into a new DataArray with a time dimension
     """
     return xr.DataArray(
         data=da_processed,
@@ -316,7 +316,6 @@ def get_max_delta(da, gridcell, grid_delta=GRID_DELTA):
     ]
 
     return max(np.abs(np.array(nbhrs_values) - my_cell_value))
-
 
 def get_day_of_epe(
         runid,
