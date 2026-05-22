@@ -58,8 +58,8 @@ def get_ds(
 
 def get_day_of_extreme(da, year):
     """
-    Return a map whose values are the dates where "da" achieved its maximum
-    in a given year.
+    Return a map whose values are the dates where the DataArray "da"
+    achieved its maximum in a given year.
     """
     return select_fixed_year(da, year).idxmax(dim="time")
 

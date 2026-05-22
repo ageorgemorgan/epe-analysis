@@ -3,6 +3,7 @@ from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
 from cartopy.util import add_cyclic_point
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 
 def fill_missing_lon(field_vals, lon):
     """
@@ -210,4 +211,12 @@ def draw_global_map(
     if show_fig:
         plt.show()
 
+    return None
+
+def trim_white_space(outfile_path):
+    """Trim the white space in a .png file located at outfile_path"""
+    im = Image.open(outfile_path)
+    im.getbbox()
+    im2 = im.crop(im.getbbox())
+    im2.save(outfile_path)
     return None
