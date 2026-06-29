@@ -26,11 +26,34 @@ baseline_runid = "agm-amip-test"
 
 central_latitude_nh = 45.
 central_latitude_sh = -45.
-central_latitude = 0. #central_latitude_nh
+central_latitude = central_latitude_nh
 halfwidth = 13.
 
 # Means over all EPEs
-pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_lat_slice_ep_areamean_from_experiment(
+# pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_lat_slice_ep_areamean_from_experiment(
+#     baseline_runid,
+#     my_experiment_name,
+#     year_range,
+#     base_path = my_base_path,
+#     file_path = my_file_path,
+#     areacell_path = my_areacell_path,
+#     central_latitude = central_latitude,
+#     halfwidth = halfwidth,
+# )
+#
+# # Means over all days
+# avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_lat_slice_avgp_areamean_from_experiment(
+#     baseline_runid,
+#     my_experiment_name,
+#     year_range,
+#     base_path = my_base_path,
+#     file_path = my_file_path,
+#     areacell_path = my_areacell_path,
+#     central_latitude = central_latitude,
+#     halfwidth = halfwidth,
+# )
+
+pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_midlat_ep_areamean_from_experiment(
     baseline_runid,
     my_experiment_name,
     year_range,
@@ -42,7 +65,7 @@ pr_total_baseline, pr_convective_baseline, pr_resolved_baseline = get_lat_slice_
 )
 
 # Means over all days
-avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_lat_slice_avgp_areamean_from_experiment(
+avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline = get_midlat_avgp_areamean_from_experiment(
     baseline_runid,
     my_experiment_name,
     year_range,
@@ -72,7 +95,27 @@ for a_str in alpha_str:
         avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = avgpr_total_baseline, avgpr_convective_baseline, avgpr_resolved_baseline
     else:
         sm_runid = "agm-sm04-alpha-" + a_str
-        pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_lat_slice_ep_areamean_from_experiment(
+        # pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_lat_slice_ep_areamean_from_experiment(
+        #     sm_runid,
+        #     my_experiment_name,
+        #     year_range,
+        #     base_path = my_base_path,
+        #     file_path = my_file_path,
+        #     areacell_path = my_areacell_path,
+        #     central_latitude = central_latitude,
+        #     halfwidth = halfwidth,
+        # )
+        # avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_lat_slice_avgp_areamean_from_experiment(
+        #     sm_runid,
+        #     my_experiment_name,
+        #     year_range,
+        #     base_path = my_base_path,
+        #     file_path = my_file_path,
+        #     areacell_path = my_areacell_path,
+        #     central_latitude = central_latitude,
+        #     halfwidth = halfwidth,
+        # )
+        pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_midlat_ep_areamean_from_experiment(
             sm_runid,
             my_experiment_name,
             year_range,
@@ -82,7 +125,7 @@ for a_str in alpha_str:
             central_latitude = central_latitude,
             halfwidth = halfwidth,
         )
-        avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_lat_slice_avgp_areamean_from_experiment(
+        avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_midlat_avgp_areamean_from_experiment(
             sm_runid,
             my_experiment_name,
             year_range,
@@ -92,7 +135,6 @@ for a_str in alpha_str:
             central_latitude = central_latitude,
             halfwidth = halfwidth,
         )
-
     pr_total_alpha.append(pr_total_experiment)
     pr_convective_alpha.append(pr_convective_experiment)
     pr_resolved_alpha.append(pr_resolved_experiment)
@@ -102,7 +144,7 @@ for a_str in alpha_str:
     avgpr_resolved_alpha.append(avgpr_resolved_experiment)
 
 def save_list_as_txt(fname, my_list):
-    return np.savetxt(fname, np.array(my_list))
+    return np.savetxt(fname + ".txt", np.array(my_list))
 
 save_list_as_txt("sm04-alpha-epe-total", pr_total_alpha)
 save_list_as_txt("sm04-alpha-epe-param", pr_convective_alpha)
@@ -258,7 +300,29 @@ for t_str in taud_str:
 
     else:
         sm_runid = "agm-sm04-taud-" + t_str
-        pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_lat_slice_ep_areamean_from_experiment(
+        # pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_lat_slice_ep_areamean_from_experiment(
+        #     sm_runid,
+        #     my_experiment_name,
+        #     year_range,
+        #     base_path = my_base_path,
+        #     file_path = my_file_path,
+        #     areacell_path = my_areacell_path,
+        #     central_latitude=central_latitude,
+        #     halfwidth=halfwidth ,
+        # )
+        #
+        # avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_lat_slice_avgp_areamean_from_experiment(
+        #     sm_runid,
+        #     my_experiment_name,
+        #     year_range,
+        #     base_path=my_base_path,
+        #     file_path=my_file_path,
+        #     areacell_path=my_areacell_path,
+        #     central_latitude=central_latitude,
+        #     halfwidth=halfwidth,
+        # )
+
+        pr_total_experiment, pr_convective_experiment, pr_resolved_experiment = get_midlat_ep_areamean_from_experiment(
             sm_runid,
             my_experiment_name,
             year_range,
@@ -269,7 +333,7 @@ for t_str in taud_str:
             halfwidth=halfwidth ,
         )
 
-        avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_lat_slice_avgp_areamean_from_experiment(
+        avgpr_total_experiment, avgpr_convective_experiment, avgpr_resolved_experiment = get_midlat_avgp_areamean_from_experiment(
             sm_runid,
             my_experiment_name,
             year_range,

@@ -264,22 +264,36 @@ def get_tropical_avgp_areamean_from_experiment(
         ) for da in get_mean_info(runid, experiment_name, year_range, base_path=base_path, file_path=file_path)
     ]
 
-# TODO: this code is not dry compared to the analogous stuff for tropical! Condense
-# this script and test to make sure nothing breaks.
+# TODO: this code is not dry compared to the analogous stuff for tropical! Condense this script and test to make sure
+#  nothing breaks.
 def get_lat_slice(central_latitude=0, halfwidth=LAT_SLICE_HALFWIDTH):
     """
     Returns a slice of latitudes of width = 2 x halfwidth centred at central_latitude
     """
     return slice(central_latitude - halfwidth, central_latitude + halfwidth)
 
-
-def select_lat_slice(da, central_latitude=0, halfwidth=LAT_SLICE_HALFWIDTH):
+def select_lat_slice(da, central_latitude=0., halfwidth=LAT_SLICE_HALFWIDTH):
     """
     Returns a slice of a given array consisting only of a particular latitude slice band
     """
     my_lat_slice = get_lat_slice(central_latitude = central_latitude, halfwidth = halfwidth)
 
     return da.sel(lat = my_lat_slice)
+
+def select_midlat_slices(da, central_latitude = 45., halfwidth = LAT_SLICE_HALFWIDTH):
+    """
+    Select two symmetric midlatitude slices of da w/ desired halfwidth, located at +/- central_latitude.
+    """
+    sliceA = get_lat_slice(central_latitude, halfwidth = halfwidth)
+    sliceB = get_lat_slice(-central_latitude, halfwidth = halfwidth)
+
+    return xr.concat(
+        [
+            da.sel(lat = sliceA),
+            da.sel(lat = sliceB),
+        ],
+        dim="lat",
+    )
 
 def get_lat_slice_areamean(da, ds_areacell, central_latitude=0, halfwidth=LAT_SLICE_HALFWIDTH):
     """
@@ -291,12 +305,32 @@ def get_lat_slice_areamean(da, ds_areacell, central_latitude=0, halfwidth=LAT_SL
         halfwidth = LAT_SLICE_HALFWIDTH,
     )
 
-    # Figure out total area covered by the tropics
+    # Figure out total area covered by slice
     slice_area = ds_areacell.areacella.sel(
         lat = get_lat_slice(
             central_latitude = central_latitude,
             halfwidth = halfwidth,
         ),
+    ).sum(
+        dim=['lon', 'lat'],
+    )
+
+    return ((ds_areacell.areacella * da_sliced).sum(dim=['lon', 'lat']) / slice_area).values
+
+def get_midlat_areamean(da, ds_areacell, central_latitude=45., halfwidth=LAT_SLICE_HALFWIDTH):
+    """
+    Compute the spatial mean of da over midlatitudes
+    """
+    da_sliced = select_midlat_slices(
+        da,
+        central_latitude = central_latitude,
+        halfwidth = LAT_SLICE_HALFWIDTH,
+    )
+
+    # Figure out total area covered by slice
+    slice_area = select_midlat_slices(ds_areacell.areacella,
+            central_latitude = central_latitude,
+            halfwidth = halfwidth,
     ).sum(
         dim=['lon', 'lat'],
     )
@@ -324,6 +358,27 @@ def get_lat_slice_ep_areamean_from_experiment(
         ) for da in get_mean_ep_info(runid, experiment_name, year_range, base_path=base_path, file_path=file_path)
     ]
 
+def get_midlat_ep_areamean_from_experiment(
+        runid,
+        experiment_name,
+        year_range,
+        base_path=BASE_PATH,
+        file_path=FILE_PATH,
+        areacell_path=AREACELL_PATH,
+        central_latitude=45,
+        halfwidth=LAT_SLICE_HALFWIDTH,
+):
+    """Get the required MIDLATITUDE means (total, convective, resolved) of *mean annual maximum precip* from a given run"""
+    ds_areacell = get_ds_areacell(runid, experiment_name, base_path=base_path, areacell_path=areacell_path)
+
+    return [
+        get_midlat_areamean(
+            da,
+            ds_areacell,
+            central_latitude=central_latitude,
+            halfwidth=halfwidth,
+        ) for da in get_mean_ep_info(runid, experiment_name, year_range, base_path=base_path, file_path=file_path)
+    ]
 
 def get_lat_slice_avgp_areamean_from_experiment(
         runid,
@@ -339,6 +394,27 @@ def get_lat_slice_avgp_areamean_from_experiment(
     ds_areacell = get_ds_areacell(runid, experiment_name, base_path=base_path, areacell_path=areacell_path)
     return [
         get_lat_slice_areamean(
+            da,
+            ds_areacell,
+            central_latitude=central_latitude,
+            halfwidth=halfwidth,
+        ) for da in get_mean_info(runid, experiment_name, year_range, base_path=base_path, file_path=file_path)
+    ]
+
+def get_midlat_avgp_areamean_from_experiment(
+        runid,
+        experiment_name,
+        year_range,
+        base_path=BASE_PATH,
+        file_path=FILE_PATH,
+        areacell_path=AREACELL_PATH,
+        central_latitude=45.,
+        halfwidth=LAT_SLICE_HALFWIDTH,
+):
+    """Get the required MIDLATITUDE means (total, convective, resolved) of *temporal averages* from a given run"""
+    ds_areacell = get_ds_areacell(runid, experiment_name, base_path=base_path, areacell_path=areacell_path)
+    return [
+        get_midlat_areamean(
             da,
             ds_areacell,
             central_latitude=central_latitude,
