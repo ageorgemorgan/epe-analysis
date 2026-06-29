@@ -30,7 +30,7 @@ def fill_missing_lon(field_vals, lon):
 
 def fill_missing_lat(field_vals, lat):
     """
-    Periodically fills in field_vals if there is a missing lon
+    Periodically fills in field_vals if there is a missing lat
 
     Useful for making maps without annoying white lines!
 
@@ -67,7 +67,7 @@ def process_for_map(da):
     field_vals = da.to_numpy()
 
     field_vals, lon = fill_missing_lon(field_vals, lon)
-    #field_vals, lat = fill_missing_lat(field_vals, lat)
+    # field_vals, lat = fill_missing_lat(field_vals, lat)
     return field_vals, lon, lat
 
 def draw_global_map(
@@ -173,17 +173,17 @@ def draw_global_map(
     if title:
         plt.title(title, fontsize = 16)
 
-    # Draw colorbar
-    cbar_ax = fig.add_axes(cbar_params)
-    cbar = plt.colorbar(co, cax=cbar_ax)
-    cbar.ax.tick_params(labelsize = 13)
-
-    if vmin is not None and vmax is not None:
-        cbar.mappable.set_clim(vmin, vmax)
-
     # Remove colorbar if desired
     if remove_cbar:
-        cbar.remove()
+        pass
+    else:
+        # Draw colorbar
+        cbar_ax = fig.add_axes(cbar_params)
+        cbar = plt.colorbar(co, cax=cbar_ax)
+        cbar.ax.tick_params(labelsize=13)
+
+        if vmin is not None and vmax is not None:
+            cbar.mappable.set_clim(vmin, vmax)
 
     # Mark a special point if needed
     if point_to_label is not None:
