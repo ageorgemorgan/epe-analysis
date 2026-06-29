@@ -6,6 +6,7 @@ Basically plotting the results of a parameter sweep.
 Author: AGM
 """
 import matplotlib.pyplot as plt
+import numpy as np
 
 from ep_processing import *
 
@@ -25,7 +26,7 @@ baseline_runid = "agm-amip-test"
 
 central_latitude_nh = 45.
 central_latitude_sh = -45.
-central_latitude = central_latitude_nh
+central_latitude = 0. #central_latitude_nh
 halfwidth = 13.
 
 # Means over all EPEs
@@ -100,132 +101,143 @@ for a_str in alpha_str:
     avgpr_convective_alpha.append(avgpr_convective_experiment)
     avgpr_resolved_alpha.append(avgpr_resolved_experiment)
 
+def save_list_as_txt(fname, my_list):
+    return np.savetxt(fname, np.array(my_list))
+
+save_list_as_txt("sm04-alpha-epe-total", pr_total_alpha)
+save_list_as_txt("sm04-alpha-epe-param", pr_convective_alpha)
+save_list_as_txt("sm04-alpha-epe-resolved", pr_resolved_alpha)
+
+save_list_as_txt("sm04-alpha-avg-total", avgpr_total_alpha)
+save_list_as_txt("sm04-alpha-avg-param", avgpr_convective_alpha)
+save_list_as_txt("sm04-alpha-avg-resolved", avgpr_resolved_alpha)
+
 # Make plots for alpha experiments
-plt.grid("on")
-
-plt.semilogx(alpha,
-             pr_total_alpha,
-             color = "xkcd:emerald",
-             marker = "s",
-             linestyle = "solid",
-             label= "Total",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            pr_total_baseline,
-            color = "xkcd:emerald",
-            marker= "*",
-            markersize = default_markersize,
-)
-
-plt.semilogx(alpha,
-             pr_convective_alpha,
-             color = "xkcd:cerulean",
-             marker = "o",
-             linestyle = "solid",
-             label = "Convective",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            pr_convective_baseline,
-            color = "xkcd:cerulean",
-            marker= "*",
-            markersize = default_markersize,
-)
-
-plt.semilogx(alpha,
-             pr_resolved_alpha,
-             color = "xkcd:crimson",
-             marker = "d",
-             linestyle = "solid",
-             label = "Resolved",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            pr_resolved_baseline,
-            color = "xkcd:crimson",
-            marker = "*",
-            markersize =  default_markersize,
-)
-
-plt.ylabel(r"Mean Precip., EPEs Only (mm $\mathrm{d}^{-1}$)", fontsize = 16)
-plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
-plt.xticks(fontsize = 16, rotation = 0)
-plt.yticks(fontsize = 16, rotation = 0)
-plt.legend(fontsize = 16, loc = (0.2, 0.3))
-plt.xlim(min(alpha), max(alpha))
-plt.tight_layout()
-
-hemisphere_label = "NH" if central_latitude > 0 else "SH"
-title_str = "images/sm-experiments-midlat-alpha-" + hemisphere_label + ".png"
-plt.savefig(title_str, dpi = 600)
-# plt.show
-plt.clf()
-
-plt.grid("on")
-plt.semilogx(alpha,
-             avgpr_total_alpha,
-             color = "xkcd:emerald",
-             marker = "s",
-             linestyle = "solid",
-             label= "Total",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            avgpr_total_baseline,
-            color = "xkcd:emerald",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.semilogx(alpha,
-             avgpr_convective_alpha,
-             color = "xkcd:cerulean",
-             marker = "o",
-             linestyle = "solid",
-             label = "Convective",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            avgpr_convective_baseline,
-            color = "xkcd:cerulean",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.semilogx(alpha,
-             avgpr_resolved_alpha,
-             color = "xkcd:crimson",
-             marker = "d",
-             linestyle = "solid",
-             label = "Resolved",
-             linewidth = 1.5,
-)
-
-plt.semilogx(5e8,
-            avgpr_resolved_baseline,
-            color = "xkcd:crimson",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.ylabel("Mean Precipitation (mm $\mathrm{d}^{-1}$)", fontsize = 16)
-plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
-plt.xticks(fontsize = 16, rotation = 0)
-plt.yticks(fontsize = 16, rotation = 0)
+# plt.grid("on")
+#
+# plt.semilogx(alpha,
+#              pr_total_alpha,
+#              color = "xkcd:emerald",
+#              marker = "s",
+#              linestyle = "solid",
+#              label= "Total",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             pr_total_baseline,
+#             color = "xkcd:emerald",
+#             marker= "*",
+#             markersize = default_markersize,
+# )
+#
+# plt.semilogx(alpha,
+#              pr_convective_alpha,
+#              color = "xkcd:cerulean",
+#              marker = "o",
+#              linestyle = "solid",
+#              label = "Convective",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             pr_convective_baseline,
+#             color = "xkcd:cerulean",
+#             marker= "*",
+#             markersize = default_markersize,
+# )
+#
+# plt.semilogx(alpha,
+#              pr_resolved_alpha,
+#              color = "xkcd:crimson",
+#              marker = "d",
+#              linestyle = "solid",
+#              label = "Resolved",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             pr_resolved_baseline,
+#             color = "xkcd:crimson",
+#             marker = "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.ylabel(r"Mean Precip., EPEs Only (mm $\mathrm{d}^{-1}$)", fontsize = 16)
+# plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
+# plt.xticks(fontsize = 16, rotation = 0)
+# plt.yticks(fontsize = 16, rotation = 0)
 # plt.legend(fontsize = 16, loc = (0.2, 0.3))
-plt.xlim(min(alpha), max(alpha))
-plt.tight_layout()
-
-title_str = "images/sm-experiments-midlat-avg-alpha-" + hemisphere_label + ".png"
-plt.savefig(title_str, dpi = 600)
-#plt.show()
-plt.clf()
+# plt.xlim(min(alpha), max(alpha))
+# plt.tight_layout()
+#
+# hemisphere_label = "NH" if central_latitude > 0 else "SH"
+# title_str = "images/sm-experiments-midlat-alpha-" + hemisphere_label + ".png"
+# plt.savefig(title_str, dpi = 600)
+# # plt.show
+# plt.clf()
+#
+# plt.grid("on")
+# plt.semilogx(alpha,
+#              avgpr_total_alpha,
+#              color = "xkcd:emerald",
+#              marker = "s",
+#              linestyle = "solid",
+#              label= "Total",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             avgpr_total_baseline,
+#             color = "xkcd:emerald",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.semilogx(alpha,
+#              avgpr_convective_alpha,
+#              color = "xkcd:cerulean",
+#              marker = "o",
+#              linestyle = "solid",
+#              label = "Convective",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             avgpr_convective_baseline,
+#             color = "xkcd:cerulean",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.semilogx(alpha,
+#              avgpr_resolved_alpha,
+#              color = "xkcd:crimson",
+#              marker = "d",
+#              linestyle = "solid",
+#              label = "Resolved",
+#              linewidth = 1.5,
+# )
+#
+# plt.semilogx(5e8,
+#             avgpr_resolved_baseline,
+#             color = "xkcd:crimson",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.ylabel("Mean Precipitation (mm $\mathrm{d}^{-1}$)", fontsize = 16)
+# plt.xlabel(r"$\alpha$ ($\mathrm{m}^4$/kg)", fontsize = 16)
+# plt.xticks(fontsize = 16, rotation = 0)
+# plt.yticks(fontsize = 16, rotation = 0)
+# # plt.legend(fontsize = 16, loc = (0.2, 0.3))
+# plt.xlim(min(alpha), max(alpha))
+# plt.tight_layout()
+#
+# title_str = "images/sm-experiments-midlat-avg-alpha-" + hemisphere_label + ".png"
+# plt.savefig(title_str, dpi = 600)
+# #plt.show()
+# plt.clf()
 
 # ****TAU_D EXPERIMENTS****
 taud_str = ["12e2", "8e3", "148e2", "21600", "284e2"]
@@ -276,125 +288,133 @@ for t_str in taud_str:
     avgpr_convective_taud.append(avgpr_convective_experiment)
     avgpr_resolved_taud.append(avgpr_resolved_experiment)
 
-plt.grid("on")
-plt.plot(taud,
-         pr_total_taud,
-         color = "xkcd:emerald",
-         marker = "s",
-         linestyle = "solid",
-         label= "Total",
-         linewidth = 1.5,
-        )
+save_list_as_txt("sm04-taud-epe-total", pr_total_taud)
+save_list_as_txt("sm04-taud-epe-param", pr_convective_taud)
+save_list_as_txt("sm04-taud-epe-resolved", pr_resolved_taud)
 
-plt.plot(21600,
-            pr_total_baseline,
-            color = "xkcd:emerald",
-            marker= "*",
-            markersize =  default_markersize,
-           )
+save_list_as_txt("sm04-taud-avg-total", avgpr_total_taud)
+save_list_as_txt("sm04-taud-avg-param", avgpr_convective_taud)
+save_list_as_txt("sm04-taud-avg-resolved", avgpr_resolved_taud)
 
-plt.plot(taud,
-         pr_convective_taud,
-         color = "xkcd:cerulean",
-         marker = "o",
-         linestyle = "solid",
-         label = "Convective",
-         linewidth = 1.5,
-        )
-
-plt.plot(21600,
-            pr_convective_baseline,
-            color = "xkcd:cerulean",
-            marker= "*",
-            markersize =  default_markersize,
-            )
-
-plt.plot(taud,
-         pr_resolved_taud,
-         color = "xkcd:crimson",
-         marker = "d",
-         linestyle = "solid",
-         label = "Resolved",
-         linewidth = 1.5,
-        )
-
-plt.plot(21600,
-            pr_resolved_baseline,
-            color = "xkcd:crimson",
-            marker= "*",
-            markersize =  default_markersize,
-           )
-
-plt.xticks(fontsize = 16, rotation = 0)
-plt.yticks(fontsize = 16, rotation = 0)
-plt.ylabel(r"Mean Precip., EPEs Only (mm $\mathrm{d}^{-1}$)", fontsize = 16)
-plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
-# plt.legend(fontsize = 12, loc = (0.05, 0.25))
-plt.xlim(min(taud), max(taud))
-plt.tight_layout()
-
-title_str = "images/sm-experiments-midlat-taud-" + hemisphere_label + ".png"
-plt.savefig(title_str, dpi = 600)
-#plt.show()
-plt.clf()
-
-plt.grid("on")
-plt.plot(taud,
-         avgpr_total_taud,
-         color = "xkcd:emerald",
-         marker = "s",
-         linestyle = "solid",
-         label= "Total",
-         linewidth = 1.5,
-)
-
-plt.plot(21600,
-            avgpr_total_baseline,
-            color = "xkcd:emerald",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.plot(taud,
-         avgpr_convective_taud,
-         color = "xkcd:cerulean",
-         marker = "o",
-         linestyle = "solid",
-         label = "Convective",
-         linewidth = 1.5,
-)
-
-plt.plot(21600,
-            avgpr_convective_baseline,
-            color = "xkcd:cerulean",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.plot(taud,
-         avgpr_resolved_taud,
-         color = "xkcd:crimson",
-         marker = "d",
-         linestyle = "solid",
-         label = "Resolved",
-         linewidth = 1.5,
-)
-
-plt.plot(21600,
-            avgpr_resolved_baseline,
-            color = "xkcd:crimson",
-            marker= "*",
-            markersize =  default_markersize,
-)
-
-plt.xticks(fontsize = 16, rotation = 0)
-plt.yticks(fontsize = 16, rotation = 0)
-plt.ylabel(r"Mean Precipitation (mm $\mathrm{d}^{-1}$)", fontsize = 16)
-plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
-# plt.legend(fontsize = 12, loc = "best")
-plt.xlim(min(taud), max(taud))
-plt.tight_layout()
-
-title_str = "images/sm-experiments-midlat-avg-taud-" + hemisphere_label + ".png"
-plt.savefig(title_str, dpi = 600)
-#plt.show()
+# plt.grid("on")
+# plt.plot(taud,
+#          pr_total_taud,
+#          color = "xkcd:emerald",
+#          marker = "s",
+#          linestyle = "solid",
+#          label= "Total",
+#          linewidth = 1.5,
+#         )
+#
+# plt.plot(21600,
+#             pr_total_baseline,
+#             color = "xkcd:emerald",
+#             marker= "*",
+#             markersize =  default_markersize,
+#            )
+#
+# plt.plot(taud,
+#          pr_convective_taud,
+#          color = "xkcd:cerulean",
+#          marker = "o",
+#          linestyle = "solid",
+#          label = "Convective",
+#          linewidth = 1.5,
+#         )
+#
+# plt.plot(21600,
+#             pr_convective_baseline,
+#             color = "xkcd:cerulean",
+#             marker= "*",
+#             markersize =  default_markersize,
+#             )
+#
+# plt.plot(taud,
+#          pr_resolved_taud,
+#          color = "xkcd:crimson",
+#          marker = "d",
+#          linestyle = "solid",
+#          label = "Resolved",
+#          linewidth = 1.5,
+#         )
+#
+# plt.plot(21600,
+#             pr_resolved_baseline,
+#             color = "xkcd:crimson",
+#             marker= "*",
+#             markersize =  default_markersize,
+#            )
+#
+# plt.xticks(fontsize = 16, rotation = 0)
+# plt.yticks(fontsize = 16, rotation = 0)
+# plt.ylabel(r"Mean Precip., EPEs Only (mm $\mathrm{d}^{-1}$)", fontsize = 16)
+# plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
+# # plt.legend(fontsize = 12, loc = (0.05, 0.25))
+# plt.xlim(min(taud), max(taud))
+# plt.tight_layout()
+#
+# title_str = "images/sm-experiments-midlat-taud-" + hemisphere_label + ".png"
+# plt.savefig(title_str, dpi = 600)
+# #plt.show()
+# plt.clf()
+#
+# plt.grid("on")
+# plt.plot(taud,
+#          avgpr_total_taud,
+#          color = "xkcd:emerald",
+#          marker = "s",
+#          linestyle = "solid",
+#          label= "Total",
+#          linewidth = 1.5,
+# )
+#
+# plt.plot(21600,
+#             avgpr_total_baseline,
+#             color = "xkcd:emerald",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.plot(taud,
+#          avgpr_convective_taud,
+#          color = "xkcd:cerulean",
+#          marker = "o",
+#          linestyle = "solid",
+#          label = "Convective",
+#          linewidth = 1.5,
+# )
+#
+# plt.plot(21600,
+#             avgpr_convective_baseline,
+#             color = "xkcd:cerulean",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.plot(taud,
+#          avgpr_resolved_taud,
+#          color = "xkcd:crimson",
+#          marker = "d",
+#          linestyle = "solid",
+#          label = "Resolved",
+#          linewidth = 1.5,
+# )
+#
+# plt.plot(21600,
+#             avgpr_resolved_baseline,
+#             color = "xkcd:crimson",
+#             marker= "*",
+#             markersize =  default_markersize,
+# )
+#
+# plt.xticks(fontsize = 16, rotation = 0)
+# plt.yticks(fontsize = 16, rotation = 0)
+# plt.ylabel(r"Mean Precipitation (mm $\mathrm{d}^{-1}$)", fontsize = 16)
+# plt.xlabel(r"$\tau_{\mathrm{d}}$ (s)", fontsize = 16)
+# # plt.legend(fontsize = 12, loc = "best")
+# plt.xlim(min(taud), max(taud))
+# plt.tight_layout()
+#
+# title_str = "images/sm-experiments-midlat-avg-taud-" + hemisphere_label + ".png"
+# plt.savefig(title_str, dpi = 600)
+# #plt.show()
