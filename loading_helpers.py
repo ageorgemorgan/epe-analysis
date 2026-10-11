@@ -4,6 +4,7 @@ import os
 BASE_PATH = "/scratch/agmorgan/canesm_runs/{runid}/data/nc_output/CMIP6/CMIP/CP4C/CanESM5-1/{experiment_name}/r1i1p1f1/"
 FILE_PATH = "day/{var_name}/gn/v20190429/{var_name}_day_CanESM5-1_{experiment_name}_r1i1p1f1_gn_{year}0101-{year}1231.nc"
 AREACELL_PATH = "fx/areacella/gn/v20190429/areacella_fx_CanESM5-1_{experiment_name}_r1i1p1f1_gn.nc"
+LANDFRAC_PATH = "fx/sftlf/gn/v20190429/sftlf_fx_CanESM5-1_{experiment_name}_r1i1p1f1_gn.nc"
 
 def join_paths(var_name, 
                year_range, 

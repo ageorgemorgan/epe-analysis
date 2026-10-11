@@ -1,4 +1,9 @@
+import geopandas as gpd
+from haversine import haversine, Unit
 import numpy as np
+from shapely.geometry import Point
+from shapely.ops import nearest_points
+from shapely.ops import unary_union
 import xarray as xr
 
 from loading_helpers import (
@@ -7,6 +12,7 @@ from loading_helpers import (
     BASE_PATH,
     FILE_PATH,
     AREACELL_PATH,
+    LANDFRAC_PATH
 )
 
 LAT_SLICE_HALFWIDTH = 13.
@@ -336,6 +342,245 @@ def get_midlat_areamean(da, ds_areacell, central_latitude=45., halfwidth=LAT_SLI
     )
 
     return ((ds_areacell.areacella * da_sliced).sum(dim=['lon', 'lat']) / slice_area).values
+
+
+def dist2coast(lat, lon):
+    """
+    Computes distance from a given lat/lon pair to a reference coastline.
+    Based on code from https://github.com/jwilgus/dist2coast/blob/main/README.md
+
+    Outputs are in km
+    """
+    p0 = Point(lon, lat) # look at the insane switches between call signatures :(
+
+    coastlines = gpd.read_file("ne_50m_coastline.zip")
+    coastline_union = unary_union(coastlines['geometry'])
+
+    p1, p0 = nearest_points(coastline_union, p0)
+    nearest_lon, nearest_lat = (p1.coords)[0]
+
+    return haversine([lat, lon],[nearest_lat, nearest_lon], unit = Unit.KILOMETERS)
+
+def extract_ci(da, da_landfrac, method = "lm_eq_1"):
+    """
+    Extracts from da only those grid points within "continental interiors"
+    """
+    if method == "lm_eq_1":
+        land_mask = da_landfrac.where(da_landfrac >= 100., other=False).astype(bool)
+        return da.where(land_mask)
+    elif method == "dist2coast":
+        # based on code from https://github.com/jwilgus/dist2coast/blob/main/README.md
+        non_ocean_mask = da_landfrac.where(da_landfrac >= 50., other=False).astype(bool)
+        da = da.where(non_ocean_mask)
+
+        dist2coast_for_da_tiles = xr.apply_ufunc(dist2coast, da.lat, -da.lon + 180, vectorize=True)
+
+        return da.where((dist2coast_for_da_tiles > 2.8125 * 110))
+
+    else:
+        raise ValueError("Invalid masking method" + method)
+
+def get_summer_mask(da):
+    """
+    Get mask corresponding to da time values in SUMMER.
+    """
+    return (da.time.dt.month == 6) | (da.time.dt.month == 7) | (da.time.dt.month == 8)
+
+def isolate_summer(da):
+    """
+    Trim away all non-summer values in a da
+    """
+    summer_mask = get_summer_mask(da)
+    return da.where(summer_mask)
+
+def get_summer_mean_info(
+        runid,
+        experiment_name,
+        year_range,
+        base_path=BASE_PATH,
+        file_path=FILE_PATH,
+):
+    """Returns all mean SUMMER precipitation DAs we need from a given experiment in a given year_range"""
+    conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
+
+    "First assemble those values we can just read from the data (total and convective)"
+    base_das = [
+        conv *
+        (isolate_summer(get_ds(
+            var_name,
+            runid,
+            experiment_name,
+            year_range,
+            base_path=base_path,
+            file_path=file_path,
+        ))).mean(dim="time")[var_name]
+        for var_name in ["pr", "prc"]
+    ]
+
+    "Conclude by appending the resolved precip"
+    base_das.append(base_das[0] - base_das[1])
+
+    return base_das
+
+def get_midlatci_areamean(
+        da,
+        ds_areacell,
+        da_landfrac,
+        central_latitude= 45.,
+        halfwidth=LAT_SLICE_HALFWIDTH,
+        method = "lm_eq_1",
+):
+    """
+    Get area mean over midlatitude continental interiors
+    """
+    da = select_lat_slice(da, central_latitude = central_latitude, halfwidth = halfwidth)
+    da = extract_ci(da, da_landfrac, method = method)
+
+    return get_midlat_areamean(da.where(da > 0), ds_areacell.where(da > 0)) # extra mask required to handle irregular domains
+
+def get_midlatci_summer_areamean_ep_single_year(
+        da_pr,
+        da_prc,
+        ds_areacell,
+        da_landfrac,
+        year,
+        central_latitude = 45.,
+        halfwidth = LAT_SLICE_HALFWIDTH,
+        method = "lm_eq_1",
+):
+    """
+    Compute the spatial mean of extreme SUMMER precip over NH midlatitude contintental interiors
+    """
+    da_pr = select_lat_slice(da_pr, central_latitude = central_latitude, halfwidth = halfwidth)
+    da_prc = select_lat_slice(da_prc, central_latitude = central_latitude, halfwidth = halfwidth)
+
+    day_of_epe = get_day_of_extreme(da_pr, year)
+
+    da_epr_current_year = da_pr.sel(time = day_of_epe)
+    da_eprc_current_year = da_prc.sel(time = day_of_epe)
+
+    summer_mask = get_summer_mask(da_epr_current_year)
+    da_epr_summer_only = da_epr_current_year.where(summer_mask)
+    da_eprc_summer_only = da_eprc_current_year.where(summer_mask)
+
+    da_eprr_summer_only = da_epr_summer_only - da_eprc_summer_only
+
+    return [
+        get_midlatci_areamean(da, ds_areacell, da_landfrac, central_latitude = central_latitude, halfwidth = halfwidth, method = method)
+        for da in [da_epr_summer_only, da_eprc_summer_only, da_eprr_summer_only]
+    ]
+
+def get_midlatci_ep_areamean_from_experiment(
+        runid,
+        experiment_name,
+        year_range,
+        base_path=BASE_PATH,
+        file_path=FILE_PATH,
+        areacell_path=AREACELL_PATH,
+        landfrac_path=LANDFRAC_PATH,
+        central_latitude=45,
+        halfwidth=LAT_SLICE_HALFWIDTH,
+        method = "lm_eq_1",
+):
+    """Get the required MIDLATITUDE continental interior means (total, convective, resolved) of
+    *mean annual maximum precip* from a given run"""
+
+    conv = MM_PER_H_TO_MM_PER_D_CONVERSION_FACTOR
+    # load pr and prc and change to mm/day
+    da_pr = conv * get_ds(
+        "pr",
+        runid,
+        experiment_name,
+        year_range,
+        base_path = base_path,
+        file_path = file_path,
+    ).pr
+
+    da_prc = conv * get_ds(
+        "prc",
+        runid,
+        experiment_name,
+        year_range,
+        base_path = base_path,
+        file_path = file_path,
+    ).prc
+
+    # load areacell
+    ds_areacell = get_ds_areacell(
+        runid,
+        experiment_name,
+        base_path = base_path,
+        areacell_path = areacell_path,
+    )
+
+    # trim to NH midlatitudes
+    da_pr = select_lat_slice(da_pr, central_latitude = central_latitude, halfwidth = halfwidth)
+    da_prc = select_lat_slice(da_prc, central_latitude = central_latitude, halfwidth = halfwidth)
+
+    # trim to continental interiors
+    da_landfrac = get_ds_areacell(
+                    runid,
+                    experiment_name,
+                    base_path = base_path,
+                    areacell_path = landfrac_path,
+    ).sftlf
+
+    da_epr_xy_avg = []
+    da_eprc_xy_avg = []
+    da_eprr_xy_avg = []
+
+    for year in year_range:
+        da_epr_xy_avg_year, da_eprc_xy_avg_year, da_eprr_xy_avg_year = get_midlatci_summer_areamean_ep_single_year(
+            da_pr,
+            da_prc,
+            ds_areacell,
+            da_landfrac,
+            year,
+        )
+
+        da_epr_xy_avg.append(da_epr_xy_avg_year)
+        da_eprc_xy_avg.append(da_eprc_xy_avg_year)
+        da_eprr_xy_avg.append(da_eprr_xy_avg_year)
+
+    return [ np.mean(xy_avg) for xy_avg in [da_epr_xy_avg, da_eprc_xy_avg, da_eprr_xy_avg] ]
+
+def get_midlatci_avgp_areamean_from_experiment(
+        runid,
+        experiment_name,
+        year_range,
+        base_path=BASE_PATH,
+        file_path=FILE_PATH,
+        areacell_path=AREACELL_PATH,
+        landfrac_path=LANDFRAC_PATH,
+        central_latitude=45.,
+        halfwidth=LAT_SLICE_HALFWIDTH,
+        method = "lm_eq_1",
+):
+    """Get the required MIDLATITUDE means (total, convective, resolved) of *temporal summer averages* from a given run"""
+    ds_areacell = get_ds_areacell(
+        runid,
+        experiment_name,
+        base_path=base_path,
+        areacell_path=areacell_path,
+    )
+    da_landfrac = get_ds_areacell(
+        runid,
+        experiment_name,
+        base_path=base_path,
+        areacell_path=landfrac_path,
+    ).sftlf
+
+    return [
+        get_midlatci_areamean(
+            da,
+            ds_areacell,
+            da_landfrac,
+            central_latitude = central_latitude,
+            halfwidth = halfwidth,
+            method = method,
+        ) for da in get_summer_mean_info(runid, experiment_name, year_range, base_path = base_path, file_path = file_path)
+    ]
+
 
 def get_lat_slice_ep_areamean_from_experiment(
         runid,
