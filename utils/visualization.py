@@ -127,7 +127,7 @@ def draw_global_map(
     # Tick labels thanks to this nice post:
     # https://stackoverflow.com/questions/61577057/weird-setting-of-latitude-labels-in-cartopy-miller-projection
     ax.set_xticks(np.arange(-180, 180, xtickdelta), crs = ccrs.PlateCarree())
-    ax.set_yticks(np.arange(-90, 90.5, ytickdelta), crs = ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-60, 60 + 0.01, ytickdelta), crs = ccrs.PlateCarree())
     lat_formatter = LatitudeFormatter()
     lon_formatter = LongitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
